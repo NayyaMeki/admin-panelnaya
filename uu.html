@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<style>
+*{box-sizing:border-box;font-family:Segoe UI,Arial,sans-serif}
+body{margin:0;background:#eef1f6}.sidebar{position:fixed;left:0;top:0;width:240px;height:100vh;background:linear-gradient(180deg,#111827,#1f2937);color:white;padding:20px;overflow:auto} .logo{font-size:20px;font-weight:700;margin-bottom:30px;color:#60a5fa} .admin{font-size:14px;margin-bottom:25px;opacity:.8} .sidebar a{display:block;text-decoration:none;color:#d1d5db;padding:10px 8px;border-radius:6px;margin-bottom:5px} .sidebar a:hover{background:#374151;color:#fff}
+
+.main{margin-left:240px;padding:25px}
+
+.topbar{background:white;padding:15px 20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.08);font-weight:600;margin-bottom:20px}
+
+.card-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;margin-bottom:20px} .card{background:white;padding:15px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.08)} .card h4{margin:0;font-size:13px;color:#6b7280} .card p{font-size:22px;margin:6px 0 0;font-weight:700}
+
+.table-box{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.08);overflow-x:auto}
+
+.table-head{display:flex;flex-wrap:wrap;justify-content:space-between;margin-bottom:15px}
+
+.search{padding:8px 10px;border:1px solid #ddd;border-radius:6px}
+
+table{width:100%;border-collapse:collapse;min-width:800px}
+
+th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;font-size:14px} th{background:#f3f4f6;font-weight:600}
+
+.status{padding:4px 8px;border-radius:6px;font-size:12px;color:white;background:#22c55e}
+
+button{padding:6px 12px;border:none;border-radius:6px;background:#3b82f6;color:white;cursor:pointer;margin:2px} button.delete{background:#ef4444}
+
+.form-box{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.08);margin-top:20px}
+
+.form-box input, .form-box select{ padding:8px;border:1px solid #ddd;border-radius:6px;margin:5px;width:150px }
+
+@media(max-width:700px){ .sidebar{position:relative;width:100%;height:auto} .main{margin-left:0} } </style>
+
+</head><body><div class="sidebar">
+<div class="logo">ADMIN PANEL</div>
+<div class="admin">Admin : Syafaa Aprilia</div>
+<a href="#">Dashboard</a>
+<a href="#">Data Bank</a>
+<a href="#">Downline</a>
+<a href="#">Voucher</a>
+<a href="#">Payment</a>
+<a href="#">KYC Management</a>
+<a href="#">Member Management</a>
+<a href="#">Setting</a>
+</div><div class="main"><div class="topbar">Admin Dashboard</div><div class="card-wrap">
+<div class="card"><h4>Total Member</h4><p id="totalMember">0</p></div>
+<div class="card"><h4>Total Deposit</h4><p id="totalDeposit">0</p></div>
+<div class="card"><h4>Provider</h4><p>PG Soft</p></div>
+<div class="card"><h4>Status Server</h4><p style="color:#22c55e">Online</p></div>
+</div><div class="table-box">
+<div class="table-head">
+<h3>Room Setting</h3>
+<input class="search" placeholder="Search..." onkeyup="searchUser(this.value)">
+</div><table>
+<thead>
+<tr>
+<th>No</th>
+<th>Username</th>
+<th>Provider</th>
+<th>Game Code</th>
+<th>Bet</th>
+<th>Tanggal</th>
+<th>Status</th>
+<th>Deposit</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div><div class="form-box">
+<h3>Tambah / Edit Member</h3>
+<input id="username" placeholder="Username">
+<input id="provider" placeholder="Provider">
+<input id="gamecode" placeholder="Game Code">
+<input id="bet" type="number" placeholder="Bet">
+<input id="date" type="date">
+<select id="status">
+<option>Aktif</option>
+<option>Nonaktif</option>
+</select>
+<input id="deposit" type="number" placeholder="Deposit">
+<button onclick="saveMember()">Simpan</button>
+</div></div><script>
+let members=[
+ {username:"demo",provider:"PG Soft",gamecode:"vs20mahjong",bet:400,date:"2026-03-13",status:"Aktif",deposit:0}
+];
+
+let editIndex=null;
+
+function render(){
+ let html="";
+ let totalDeposit=0;
+
+ members.forEach((m,i)=>{
+  totalDeposit += Number(m.deposit || 0);
+
+  html += `<tr>
+  <td>${i+1}</td>
+  <td>${m.username}</td>
+  <td>${m.provider}</td>
+  <td>${m.gamecode}</td>
+  <td>${m.bet}</td>
+  <td>${m.date}</td>
+  <td><span class="status">${m.status || 'Aktif'}</span></td>
+  <td>${m.deposit}</td>
+  <td>
+   <button onclick="editMember(${i})">Edit</button>
+   <button class="delete" onclick="deleteMember(${i})">Delete</button>
+  </td>
+  </tr>`;
+ });
+
+ document.getElementById("tableBody").innerHTML = html;
+ document.getElementById("totalMember").innerText = members.length;
+ document.getElementById("totalDeposit").innerText = totalDeposit;
+}
+
+function saveMember(){
+ const data={
+  username: document.getElementById("username").value,
+  provider: document.getElementById("provider").value,
+  gamecode: document.getElementById("gamecode").value,
+  bet: document.getElementById("bet").value || 0,
+  date: document.getElementById("date").value,
+  status: document.getElementById("status").value || "Aktif",
+  deposit: document.getElementById("deposit").value || 0
+ };
+
+ if(!data.username) return alert("Isi username dulu");
+
+ if(editIndex === null){
+  members.push(data);
+ }else{
+  members[editIndex] = data;
+  editIndex = null;
+ }
+
+ clearForm();
+ render();
+}
+
+function editMember(i){
+ const m = members[i];
+
+ document.getElementById("username").value = m.username;
+ document.getElementById("provider").value = m.provider;
+ document.getElementById("gamecode").value = m.gamecode;
+ document.getElementById("bet").value = m.bet;
+ document.getElementById("date").value = m.date;
+ document.getElementById("status").value = m.status;
+ document.getElementById("deposit").value = m.deposit;
+
+ editIndex = i;
+}
+
+function deleteMember(i){
+ members.splice(i,1);
+ render();
+}
+
+function clearForm(){
+ document.getElementById("username").value="";
+ document.getElementById("provider").value="";
+ document.getElementById("gamecode").value="";
+ document.getElementById("bet").value="";
+ document.getElementById("date").value="";
+ document.getElementById("deposit").value="";
+}
+
+function searchUser(keyword){
+ const rows=document.querySelectorAll("#tableBody tr");
+ rows.forEach(r=>{
+  r.style.display = r.innerText.toLowerCase().includes(keyword.toLowerCase()) ? "" : "none";
+ });
+}
+
+render();
+</script></body>
+</html>
